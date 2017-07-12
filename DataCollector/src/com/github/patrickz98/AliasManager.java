@@ -27,7 +27,7 @@ public class AliasManager
             String newTag = alias.getString(tag);
             json.put(inx, newTag);
 
-            System.err.println("Change: " + tag + " --> " + newTag);
+            // System.err.println("Change: " + tag + " --> " + newTag);
         }
     }
 

@@ -10,5 +10,6 @@
     <orderEntry type="library" name="org.json:json:20170516" level="project" />
     <orderEntry type="library" name="stanford-ner" level="project" />
     <orderEntry type="library" name="stanford-german-corenlp-2017-06-09-models" level="project" />
+    <orderEntry type="library" name="org.mongodb:mongo-java-driver:3.0.0" level="project" />
   </component>
 </module>

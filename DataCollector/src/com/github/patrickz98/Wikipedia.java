@@ -13,7 +13,9 @@ public class Wikipedia
 {
     private final static String baseUrlDe = "https://de.wikipedia.org";
     private final static String baseUrlEn = "https://en.wikipedia.org";
-    private final static int thrumbWidth = 600;
+    private final static int thumbWidth = 600;
+
+    private static Mongo mongo = new Mongo(Constants.collectionWiki);
 
 //    {
 //        "batchcomplete": "",
@@ -67,7 +69,7 @@ public class Wikipedia
                 "action=query&" +
                 "prop=imageinfo&" +
                 "iiprop=url&" +
-                "iiurlwidth=" + thrumbWidth + "&" +
+                "iiurlwidth=" + thumbWidth + "&" +
                 "format=json&";
 
         for (int inx = 0; inx < array.length(); inx++)
@@ -172,7 +174,7 @@ public class Wikipedia
                 "gpslimit=1&" +
                 "prop=pageimages|pageterms&" +
                 "piprop=thumbnail&" +
-                "pithumbsize=" + thrumbWidth + "&" +
+                "pithumbsize=" + thumbWidth + "&" +
                 "pilimit=1&" +
                 "redirects=&" +
                 "wbptterms=description&" +
@@ -220,38 +222,54 @@ public class Wikipedia
 
     public static JSONObject find(String tag)
     {
-        JSONObject imgJson = findThumb(baseUrlDe, tag);
+        JSONObject imgJson = mongo.getData(tag);
 
-//        JSONArray images = getWikiFiles(baseUrlDe, tag);
-//        JSONObject wikiImgJson = imgInfo(baseUrlDe, images);
-//        JSONObject imgJson = convertImageInfo(wikiImgJson);
+        if (imgJson != null)
+        {
+            System.out.println("(Mongo) fund: " + tag);
+            return imgJson;
+        }
 
-        if (imgJson != null) return imgJson;
+        imgJson = findThumb(baseUrlDe, tag);
+        if (imgJson != null)
+        {
+            imgJson.put("key", tag);
+            mongo.insert(imgJson);
+            return imgJson;
+        }
 
         imgJson = findThumb(baseUrlEn, tag);
+        if (imgJson != null)
+        {
+            imgJson.put("key", tag);
+            mongo.insert(imgJson);
+            return imgJson;
+        }
 
-//        images = getWikiFiles(baseUrlEn, tag);
-//        wikiImgJson = imgInfo(baseUrlEn, images);
-//        imgJson = convertImageInfo(wikiImgJson);
-
-        // System.out.println(imgJson.toString(2));
-
-        return imgJson;
+        return null;
     }
 
-    public static JSONObject find(JSONArray tags)
+    public static JSONArray find(JSONArray tags)
     {
-        JSONObject json = new JSONObject();
+        JSONArray json = new JSONArray();
+
+        ArrayList<String> done = new ArrayList<>();
 
         for (int inx = 0; inx < tags.length(); inx++)
         {
             String tag = tags.getString(inx);
+
+            if (done.contains(tag)) continue;
+
             JSONObject fund = find(tag);
 
             if (fund == null) continue;
 
-            json.put(tag, fund);
+            json.put(fund);
+            done.add(tag);
         }
+
+        mongo.close();
 
         return json;
     }

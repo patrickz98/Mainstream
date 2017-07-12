@@ -40,11 +40,16 @@ public class Main
         aliasManager.autoMatch(allTags);
         aliasManager.cleanNerBranch(allTags);
 
+        JSONArray wikiJson = Wikipedia.find(allTags);
+
+        Simple.saveFile("/Users/patrick/Desktop/Projects/Mainstream/DataCollector/dump/dump-wiki.json", wikiJson.toString(2));
         Simple.saveFile("/Users/patrick/Desktop/Projects/Mainstream/DataCollector/dump/dump-tags.json", allTags.toString(2));
     }
 
     public static void main(String[] args)
     {
+        new Mongo("asdf");
+
         aliasManager = new AliasManager();
 
         JSONArray data = collectData();
