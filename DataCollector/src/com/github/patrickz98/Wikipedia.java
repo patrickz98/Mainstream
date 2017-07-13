@@ -15,7 +15,14 @@ public class Wikipedia
     private final static String baseUrlEn = "https://en.wikipedia.org";
     private final static int thumbWidth = 600;
 
-    private static Mongo mongo = new Mongo(Constants.collectionWiki);
+    private static Mongo mongo;
+
+    Wikipedia()
+    {
+        mongo = new Mongo(Constants.collectionWiki);
+
+        mongo.find("{\"key\": {$in:[\"Wacker Burghausen\",\"Schweinfurt\"]}}");
+    }
 
 //    {
 //        "batchcomplete": "",
@@ -226,13 +233,14 @@ public class Wikipedia
 
         if (imgJson != null)
         {
-            System.out.println("(Mongo) fund: " + tag);
             return imgJson;
         }
 
         imgJson = findThumb(baseUrlDe, tag);
         if (imgJson != null)
         {
+            System.out.println("(Wiki) new: " + tag);
+
             imgJson.put("key", tag);
             mongo.insert(imgJson);
             return imgJson;
@@ -241,6 +249,8 @@ public class Wikipedia
         imgJson = findThumb(baseUrlEn, tag);
         if (imgJson != null)
         {
+            System.out.println("(Wiki) new: " + tag);
+
             imgJson.put("key", tag);
             mongo.insert(imgJson);
             return imgJson;
@@ -249,9 +259,35 @@ public class Wikipedia
         return null;
     }
 
-    public static JSONArray find(JSONArray tags)
+//    private JSONArray find(JSONArray tags)
+//    {
+//        JSONArray json = new JSONArray();
+//
+//        ArrayList<String> done = new ArrayList<>();
+//
+//        for (int inx = 0; inx < tags.length(); inx++)
+//        {
+//            String tag = tags.getString(inx);
+//
+//            if (done.contains(tag)) continue;
+//
+//            JSONObject fund = find(tag);
+//            done.add(tag);
+//
+//            if (fund == null) continue;
+//
+//            json.put(fund);
+//        }
+//
+//        return json;
+//    }
+
+    public void findMongo(JSONArray tags)
     {
-        JSONArray json = new JSONArray();
+        // db.wiki.find({"key": {$in:["Wacker Burghausen","Schweinfurt","asdfasgs34"]}})
+
+        System.out.println("(Wiki) findMongo");
+        ArrayList<String> preExisting = mongo.find("{\"key\": {$in:" + tags.toString() + "}}");
 
         ArrayList<String> done = new ArrayList<>();
 
@@ -260,18 +296,16 @@ public class Wikipedia
             String tag = tags.getString(inx);
 
             if (done.contains(tag)) continue;
+            if (preExisting.contains(tag)) continue;
 
-            JSONObject fund = find(tag);
-
-            if (fund == null) continue;
-
-            json.put(fund);
+            find(tag);
             done.add(tag);
         }
+    }
 
+    public void close()
+    {
         mongo.close();
-
-        return json;
     }
 }
 

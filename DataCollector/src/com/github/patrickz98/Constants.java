@@ -9,6 +9,6 @@ public class Constants
     public static final String mongoDBServer = "localhost";
     public static final String mongoDB = "MainStream";
 
-    public static final String collectionWiki  = "wiki";
-    public static final String collectionAlias = "alias";
+    public static final String collectionWiki = "wiki";
+    public static final String collectionMetaData = "metaData";
 }

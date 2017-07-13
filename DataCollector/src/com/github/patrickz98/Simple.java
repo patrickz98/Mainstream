@@ -120,12 +120,13 @@ public class Simple
         return str;
     }
 
-    public static String toDayDate()
+    public static int toDayDate()
     {
         Date date = new Date();
-        DateFormat form = new SimpleDateFormat("yyyy-MM-dd");
+        // DateFormat form = new SimpleDateFormat("yyyy-MM-dd");
+        DateFormat form = new SimpleDateFormat("yyyyMMdd");
 
-        return form.format(date);
+        return Integer.parseInt(form.format(date));
     }
 
     public static void saveFile(String filePath, String content)
@@ -138,7 +139,7 @@ public class Simple
         try
         {
             PrintWriter writer = new PrintWriter(file, "UTF-8");
-            writer.println(content);
+            writer.print(content);
             writer.close();
         }
         catch (IOException ex)

@@ -14,6 +14,9 @@ public class Main
         Suddeutsche suddeutsche = new Suddeutsche(allArticles);
         suddeutsche.scan();
 
+        Spon spon = new Spon(allArticles);
+        spon.scan();
+
         return allArticles;
     }
 
@@ -22,89 +25,122 @@ public class Main
         for (int inx = 0; inx < data.length(); inx++)
         {
             JSONObject json = data.getJSONObject(inx);
+            aliasManager.cleanNerBranch(json.getJSONArray("allTags"));
             aliasManager.cleanNer(json);
         }
     }
 
-    private static void dumpAllTags(JSONArray data)
+    private static JSONArray dumpAllTags(JSONArray data)
     {
         JSONArray allTags = new JSONArray();
 
         for (int inx = 0; inx < data.length(); inx++)
         {
             JSONObject json = data.getJSONObject(inx);
-
             Simple.appendArrayEntriesToArray(allTags, json.getJSONArray("allTags"));
         }
 
         aliasManager.autoMatch(allTags);
         aliasManager.cleanNerBranch(allTags);
 
-        JSONArray wikiJson = Wikipedia.find(allTags);
-
-        Simple.saveFile("/Users/patrick/Desktop/Projects/Mainstream/DataCollector/dump/dump-wiki.json", wikiJson.toString(2));
         Simple.saveFile("/Users/patrick/Desktop/Projects/Mainstream/DataCollector/dump/dump-tags.json", allTags.toString(2));
+
+        return allTags;
+    }
+
+    private static JSONObject countTags(JSONArray data)
+    {
+        JSONObject countData = new JSONObject();
+
+        for (int inx = 0; inx < data.length(); inx++)
+        {
+            JSONObject json = data.getJSONObject(inx);
+            JSONArray allTags = json.getJSONArray("allTags");
+
+            for (int iny = 0; iny < allTags.length(); iny++)
+            {
+                String tag = allTags.getString(iny);
+                int count = countData.optInt(tag, 0) + 1;
+                countData.put(tag, count);
+            }
+        }
+
+        Simple.saveFile("/Users/patrick/Desktop/Projects/Mainstream/DataCollector/dump/count.json", countData.toString(2));
+
+        StringBuilder csv = new StringBuilder();
+        csv.append("Tag,Count\n");
+
+        for (String tag: countData.keySet())
+        {
+            csv.append(tag);
+            csv.append(",");
+            csv.append(countData.getInt(tag));
+            csv.append("\n");
+        }
+
+        csv.trimToSize();
+
+        Simple.saveFile("/Users/patrick/Desktop/Projects/Mainstream/DataCollector/dump/count.csv", csv.toString());
+
+        return countData;
+    }
+
+    private static void addMetaDataMongo(JSONArray metaData)
+    {
+        Mongo mongo = new Mongo(Constants.collectionMetaData);
+        mongo.insertNotReplace(metaData);
+        mongo.close();
+    }
+
+    private static void addTagCountMongo(JSONObject count)
+    {
+        Mongo mongo = new Mongo("tagsCount");
+
+        // String date = Simple.toDayDate();
+        int date = Simple.toDayDate();
+
+        for (String key: count.keySet())
+        {
+            JSONObject entry = new JSONObject();
+
+            String id = Simple.md5(key + date);
+
+            entry.put("_id", id);
+            entry.put("key", key);
+            entry.put("count", count.getInt(key));
+            entry.put("date", date);
+
+            mongo.insertOrReplace(entry);
+        }
+
+        mongo.close();
+    }
+
+    private static void wiki(JSONArray allTags)
+    {
+        Wikipedia wiki = new Wikipedia();
+        wiki.findMongo(allTags);
+        wiki.close();
+
+        // JSONArray wikiJson = Wikipedia.find(allTags);
+        // Simple.saveFile("/Users/patrick/Desktop/Projects/Mainstream/DataCollector/dump/dump-wiki.json", wikiJson.toString(2));
     }
 
     public static void main(String[] args)
     {
-        new Mongo("asdf");
-
         aliasManager = new AliasManager();
 
         JSONArray data = collectData();
         Simple.saveFile("/Users/patrick/Desktop/Projects/Mainstream/DataCollector/dump/dump.json", data.toString(2));
 
-        dumpAllTags(data);
+        JSONArray allTags = dumpAllTags(data);
         cleanData(data);
 
-//        JSONArray spon = Spon.scan();
-//
-//        if (spon == null)
-//        {
-//            System.out.println("Spiegel Error.");
-//            return;
-//        }
+        addMetaDataMongo(data);
 
-//        JSONArray suddeutsche = Suddeutsche.scan();
-//
-//        if (suddeutsche == null)
-//        {
-//            System.out.println("Suddeutsche Error.");
-//            return;
-//        }
-//
-//        Simple.saveFile("/Users/patrick/Desktop/Projects/Mainstream/DataCollector/dump/dump.json", suddeutsche.toString(2));
-//
-//        AliasManager aliasManager = new AliasManager();
-//
-//        JSONArray allTags = new JSONArray();
-//
-//        for (int inx = 0; inx < suddeutsche.length(); inx++)
-//        {
-//            JSONObject json = suddeutsche.getJSONObject(inx);
-//
-//            Simple.appendArrayEntrysToArray(allTags, json.getJSONArray("TAGS"));
-//
-//            aliasManager.cleanNerBranch(json.getJSONArray("TAGS"));
-//
-//            if (json.has("LOCATION"))     aliasManager.cleanNerBranch(json.getJSONArray("LOCATION"));
-//            if (json.has("MISC"))         aliasManager.cleanNerBranch(json.getJSONArray("MISC"));
-//            if (json.has("ORGANIZATION")) aliasManager.cleanNerBranch(json.getJSONArray("ORGANIZATION"));
-//            if (json.has("PERSON"))       aliasManager.cleanNerBranch(json.getJSONArray("PERSON"));
-//
-//            System.out.println("--> " + json.getString("title"));
-//
-//            if (json.has("COUNTRIES"))
-//            {
-//                System.out.println(json.getJSONArray("COUNTRIES").toString(2));
-//            }
-//        }
-//
-//        aliasManager.autoMatch(allTags);
-//
-//        Simple.saveFile("/Users/patrick/Desktop/Projects/Mainstream/DataCollector/dump/dump-tags.json", allTags.toString(2));
-//
-//        System.out.println("Done");
+        JSONObject count = countTags(data);
+        addTagCountMongo(count);
+
+        wiki(allTags);
     }
 }
