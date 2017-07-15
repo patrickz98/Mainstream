@@ -11,11 +11,13 @@ public class Spon
 {
     private SimpleNer ner;
     private JSONArray dataPool;
+    private Mongo mongo;
 
-    Spon(JSONArray dataPool)
+    Spon(Mongo mongo, JSONArray dataPool)
     {
         ner = SimpleNer.getInstance();
         this.dataPool = dataPool;
+        this.mongo = mongo;
     }
 
     private void match(String html, String pattern, StringBuilder head)
@@ -108,6 +110,14 @@ public class Spon
         return json;
     }
 
+    private JSONObject preExisting(String link)
+    {
+        JSONObject find = new JSONObject();
+        find.put("_id", Simple.md5(link));
+
+        return mongo.findOne(find.toString());
+    }
+
     public void scan()
     {
         System.out.println("Downloading: http://www.spiegel.de/schlagzeilen/");
@@ -133,20 +143,34 @@ public class Spon
 
             if (matcher.group(1).startsWith("http")) continue;
 
-            JSONObject article = processArticle(title, link);
+            JSONObject preExisting = preExisting(link);
 
-            if (article == null) continue;
+            if (preExisting == null)
+            {
+                JSONObject article = processArticle(title, link);
 
-            dataPool.put(article);
+                if (article == null) continue;
+
+                dataPool.put(article);
+
+                System.out.println("(Spiegel Online) #" + count + " - " + article.getString("title"));
+                count++;
+
+                continue;
+            }
+
+            if (preExisting.getInt("date") == Simple.toDayDate())
+            {
+                dataPool.put(preExisting);
+                // System.out.println("(Suddeutsche) preExisting: " + title);
+            }
+            else
+            {
+                // System.out.println("(Suddeutsche) preExisting-past: " + title);
+            }
 
             // System.out.print("Spiegel Online: " + count + "\r");
             // System.out.flush();
-
-            System.out.println("(" + count + ") Spiegel Online: " + article.getString("title"));
-
-            count++;
         }
-
-        System.out.println();
     }
 }

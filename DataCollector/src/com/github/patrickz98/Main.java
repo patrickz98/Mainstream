@@ -1,21 +1,25 @@
 package com.github.patrickz98;
 
+import org.bson.Document;
 import org.json.JSONArray;
 import org.json.JSONObject;
+
+import java.util.logging.Level;
 
 public class Main
 {
     private static AliasManager aliasManager;
+    private static Mongo mongo;
 
     private static JSONArray collectData()
     {
         JSONArray allArticles = new JSONArray();
 
-        Suddeutsche suddeutsche = new Suddeutsche(allArticles);
-        suddeutsche.scan();
-
-        Spon spon = new Spon(allArticles);
+        Spon spon = new Spon(mongo, allArticles);
         spon.scan();
+
+        Suddeutsche suddeutsche = new Suddeutsche(mongo, allArticles);
+        suddeutsche.scan();
 
         return allArticles;
     }
@@ -24,13 +28,16 @@ public class Main
     {
         for (int inx = 0; inx < data.length(); inx++)
         {
-            JSONObject json = data.getJSONObject(inx);
-            aliasManager.cleanNerBranch(json.getJSONArray("allTags"));
-            aliasManager.cleanNer(json);
+            // JSONObject json = data.getJSONObject(inx);
+            // aliasManager.cleanNerBranch(json.getJSONArray("allTags"));
+            // aliasManager.cleanNer(json);
+
+            aliasManager.cleanNerBranch(data.getJSONObject(inx).getJSONArray("allTags"));
+            aliasManager.cleanNer(data.getJSONObject(inx));
         }
     }
 
-    private static JSONArray dumpAllTags(JSONArray data)
+    private static JSONArray getAllTags(JSONArray data)
     {
         JSONArray allTags = new JSONArray();
 
@@ -40,6 +47,13 @@ public class Main
             Simple.appendArrayEntriesToArray(allTags, json.getJSONArray("allTags"));
         }
 
+        return allTags;
+    }
+
+    private static JSONArray dumpAllTags(JSONArray data)
+    {
+        JSONArray allTags = getAllTags(data);
+
         aliasManager.autoMatch(allTags);
         aliasManager.cleanNerBranch(allTags);
 
@@ -48,24 +62,18 @@ public class Main
         return allTags;
     }
 
-    private static JSONObject countTags(JSONArray data)
+    private static JSONObject countTags(JSONArray tags, String label)
     {
         JSONObject countData = new JSONObject();
 
-        for (int inx = 0; inx < data.length(); inx++)
+        for (int inx = 0; inx < tags.length(); inx++)
         {
-            JSONObject json = data.getJSONObject(inx);
-            JSONArray allTags = json.getJSONArray("allTags");
-
-            for (int iny = 0; iny < allTags.length(); iny++)
-            {
-                String tag = allTags.getString(iny);
-                int count = countData.optInt(tag, 0) + 1;
-                countData.put(tag, count);
-            }
+            String tag = tags.getString(inx);
+            int count = countData.optInt(tag, 0) + 1;
+            countData.put(tag, count);
         }
 
-        Simple.saveFile("/Users/patrick/Desktop/Projects/Mainstream/DataCollector/dump/count.json", countData.toString(2));
+        Simple.saveFile("/Users/patrick/Desktop/Projects/Mainstream/DataCollector/dump/count-" + label + ".json", countData.toString(2));
 
         StringBuilder csv = new StringBuilder();
         csv.append("Tag,Count\n");
@@ -80,7 +88,7 @@ public class Main
 
         csv.trimToSize();
 
-        Simple.saveFile("/Users/patrick/Desktop/Projects/Mainstream/DataCollector/dump/count.csv", csv.toString());
+        Simple.saveFile("/Users/patrick/Desktop/Projects/Mainstream/DataCollector/dump/count-" + label + ".csv", csv.toString());
 
         return countData;
     }
@@ -88,13 +96,25 @@ public class Main
     private static void addMetaDataMongo(JSONArray metaData)
     {
         Mongo mongo = new Mongo(Constants.collectionMetaData);
-        mongo.insertNotReplace(metaData);
+
+        for (int inx = 0; inx < metaData.length(); inx++)
+        {
+            JSONObject meta = metaData.getJSONObject(inx);
+
+            if (meta.has("_id")) continue;
+
+            System.out.println("(Mongo) insert: " + meta.getString("source") + " - " + meta.getString("title"));
+
+            meta.put("_id", Simple.md5(meta.getString("link")));
+            mongo.insert(meta);
+        }
+
         mongo.close();
     }
 
-    private static void addTagCountMongo(JSONObject count)
+    private static void addTagCountMongo(JSONObject count, String label)
     {
-        Mongo mongo = new Mongo("tagsCount");
+        Mongo mongo = new Mongo(label);
 
         // String date = Simple.toDayDate();
         int date = Simple.toDayDate();
@@ -121,14 +141,62 @@ public class Main
         Wikipedia wiki = new Wikipedia();
         wiki.findMongo(allTags);
         wiki.close();
+    }
 
-        // JSONArray wikiJson = Wikipedia.find(allTags);
-        // Simple.saveFile("/Users/patrick/Desktop/Projects/Mainstream/DataCollector/dump/dump-wiki.json", wikiJson.toString(2));
+    private static void generateNerTop(JSONArray data, String nerComp)
+    {
+        JSONArray tags = new JSONArray();
+
+        for (int inx = 0; inx < data.length(); inx++)
+        {
+            JSONObject json = data.getJSONObject(inx);
+
+            if (! json.has("tags")) continue;
+            if (! json.getJSONObject("tags").has(nerComp)) continue;
+
+            Simple.appendArrayEntriesToArray(tags, json.getJSONObject("tags").getJSONArray(nerComp));
+        }
+
+        JSONObject count = countTags(tags, nerComp);
+        addTagCountMongo(count, "tagsCount" + Simple.upperFirst(nerComp));
+    }
+
+    private static void generateNerTop(JSONArray data)
+    {
+        String[] nerTags = new String[]{"organization", "misc", "person", "location"};
+
+        for (String nerTag: nerTags)
+        {
+            generateNerTop(data, nerTag);
+        }
+    }
+
+    private static void generateTop(JSONArray data)
+    {
+        JSONObject count = countTags(getAllTags(data), "all");
+        addTagCountMongo(count, "tagsCount");
+
+    }
+
+    private static void processArgs(String[] args)
+    {
+        if (args.length <= 0) return;
+
+//        System.out.println("arg 0: " + args[ 0 ] + " 1: " + args[ 1 ]);
+        aliasManager.addManual(args[ 0 ], args[ 1 ]);
+
+        System.exit(0);
     }
 
     public static void main(String[] args)
     {
         aliasManager = new AliasManager();
+
+        processArgs(args);
+
+        java.util.logging.Logger.getLogger("org.mongodb.driver").setLevel(Level.SEVERE);
+
+        mongo = new Mongo(Constants.collectionMetaData);
 
         JSONArray data = collectData();
         Simple.saveFile("/Users/patrick/Desktop/Projects/Mainstream/DataCollector/dump/dump.json", data.toString(2));
@@ -138,8 +206,8 @@ public class Main
 
         addMetaDataMongo(data);
 
-        JSONObject count = countTags(data);
-        addTagCountMongo(count);
+        generateTop(data);
+        generateNerTop(data);
 
         wiki(allTags);
     }

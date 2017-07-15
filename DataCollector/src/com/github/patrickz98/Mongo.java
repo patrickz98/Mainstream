@@ -128,6 +128,18 @@ public class Mongo
         return result;
     }
 
+    public JSONObject findOne(String str)
+    {
+        FindIterable resultMongo = mcollection.find(Document.parse(str));
+        Document doc = (Document) resultMongo.first();
+
+        if (doc == null) return null;
+
+        String jsonString = doc.toJson();
+
+        return new JSONObject(jsonString);
+    }
+
     public void close()
     {
         mongoClient.close();

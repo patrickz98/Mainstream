@@ -10,11 +10,13 @@ public class Suddeutsche
 {
     private SimpleNer ner;
     private JSONArray dataPool;
+    private Mongo mongo;
 
-    Suddeutsche(JSONArray dataPool)
+    Suddeutsche(Mongo mongo, JSONArray dataPool)
     {
-        ner = SimpleNer.getInstance();
+        this.ner = SimpleNer.getInstance();
         this.dataPool = dataPool;
+        this.mongo = mongo;
     }
 
     private String getSummary(String html)
@@ -128,6 +130,14 @@ public class Suddeutsche
         return json;
     }
 
+    private JSONObject preExisting(String link)
+    {
+        JSONObject find = new JSONObject();
+        find.put("_id", Simple.md5(link));
+
+        return mongo.findOne(find.toString());
+    }
+
     public void scan()
     {
         System.out.println("Downloading: http://www.sueddeutsche.de");
@@ -155,17 +165,34 @@ public class Suddeutsche
             String title = matcher.group(2);
             String link  = matcher.group(1);
 
-            JSONObject article = processArticle(title, link);
+            JSONObject preExisting = preExisting(link);
 
-            if (article == null) continue;
+            if (preExisting == null)
+            {
+                JSONObject article = processArticle(title, link);
 
-            dataPool.put(article);
+                if (article == null) continue;
 
-            System.out.println("(" + count + ") Suddeutsche: " + article.getString("title"));
+                dataPool.put(article);
 
-            count++;
+                System.out.println("(Suddeutsche) #" + count + " - " + article.getString("title"));
 
-            // if (count >= 10) break;
+                count++;
+
+                continue;
+            }
+
+            // System.out.println("preExisting: date --> " + preExisting.getInt("date"));
+
+            if (preExisting.getInt("date") == Simple.toDayDate())
+            {
+                dataPool.put(preExisting);
+                // System.out.println("(Suddeutsche) preExisting: " + title);
+            }
+            else
+            {
+                // System.out.println("(Suddeutsche) preExisting-past: " + title);
+            }
         }
     }
 }

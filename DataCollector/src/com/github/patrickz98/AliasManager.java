@@ -3,6 +3,8 @@ package com.github.patrickz98;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.util.*;
+
 public class AliasManager
 {
     private JSONObject alias;
@@ -13,22 +15,53 @@ public class AliasManager
 
         if (content == null) alias = new JSONObject();
 
-        alias  = content;
+        alias = content;
     }
 
     public void cleanNerBranch(JSONArray json)
     {
+        //System.out.println("before: " + json.toString(2));
+        //System.out.println("before: " + json.length());
+
+        ArrayList<String> array = new ArrayList<>();
+
         for (int inx = 0; inx < json.length(); inx++)
         {
             String tag = json.getString(inx);
 
-            if (! alias.has(tag)) continue;
+            if (! alias.has(tag))
+            {
+                array.add(tag);
+                continue;
+            }
 
-            String newTag = alias.getString(tag);
-            json.put(inx, newTag);
-
-            // System.err.println("Change: " + tag + " --> " + newTag);
+            array.add(alias.getString(tag));
         }
+
+//        int length = json.length();
+//        for (int inx = 0; inx < length; inx++)
+//        {
+//            json.remove(0);
+//        }
+
+        while (! json.isNull(0))
+        {
+            json.remove(0);
+        }
+
+
+        //System.out.println("empty:  " + json.toString(2));
+
+        ArrayList<String> done = new ArrayList<>();
+        for (String str: array)
+        {
+            if (done.contains(str)) continue;
+
+            json.put(str);
+            done.add(str);
+        }
+
+        //System.out.println("after:  " + json.toString(2));
     }
 
     public void cleanNer(JSONObject json)
@@ -99,6 +132,14 @@ public class AliasManager
 
         cleanJsonAliases(alias);
 
+        Simple.saveFile(Constants.aliasPath, alias.toString(2));
+    }
+
+    public void addManual(String wrong, String right)
+    {
+        alias.put(wrong, right);
+
+        cleanJsonAliases(alias);
         Simple.saveFile(Constants.aliasPath, alias.toString(2));
     }
 }

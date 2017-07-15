@@ -286,11 +286,15 @@ public class Wikipedia
     {
         // db.wiki.find({"key": {$in:["Wacker Burghausen","Schweinfurt","asdfasgs34"]}})
 
-        System.out.println("(Wiki) findMongo");
+        System.out.println("Tags: " + tags.length());
+        System.out.println("Loading DB Wikipedia...");
         ArrayList<String> preExisting = mongo.find("{\"key\": {$in:" + tags.toString() + "}}");
+
+        System.out.println("--> " + preExisting.size());
 
         ArrayList<String> done = new ArrayList<>();
 
+        System.out.println("Start...");
         for (int inx = 0; inx < tags.length(); inx++)
         {
             String tag = tags.getString(inx);
@@ -301,6 +305,7 @@ public class Wikipedia
             find(tag);
             done.add(tag);
         }
+        System.out.println("Wikipedia done");
     }
 
     public void close()

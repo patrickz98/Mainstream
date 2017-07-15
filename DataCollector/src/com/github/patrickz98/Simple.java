@@ -247,4 +247,9 @@ public class Simple
             des.put(source.getString(inx));
         }
     }
+
+    public static String upperFirst(String str)
+    {
+        return str.substring(0, 1).toUpperCase() + str.substring(1);
+    }
 }
