@@ -13,13 +13,20 @@ public class Main
 
     private static JSONArray collectData()
     {
+        System.out.println("Downloading data...");
+
         JSONArray allArticles = new JSONArray();
+
+        Faz faz = new Faz(mongo, allArticles);
+        faz.scan();
 
         Spon spon = new Spon(mongo, allArticles);
         spon.scan();
 
         Suddeutsche suddeutsche = new Suddeutsche(mongo, allArticles);
         suddeutsche.scan();
+
+        System.out.println("Done");
 
         return allArticles;
     }
@@ -180,6 +187,12 @@ public class Main
 
     private static void processArgs(String[] args)
     {
+        if ((args.length == 1) && args[ 0 ].equals("top"))
+        {
+            Numbers.start();
+            return;
+        }
+
         if (args.length <= 0) return;
 
 //        System.out.println("arg 0: " + args[ 0 ] + " 1: " + args[ 1 ]);
@@ -193,6 +206,8 @@ public class Main
         aliasManager = new AliasManager();
 
         processArgs(args);
+
+        SimpleNer.getInstance();
 
         java.util.logging.Logger.getLogger("org.mongodb.driver").setLevel(Level.SEVERE);
 

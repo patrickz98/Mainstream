@@ -4,10 +4,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class Wikipedia
 {
@@ -196,6 +193,7 @@ public class Wikipedia
         // System.out.println(wikiResponse.toString(2));
 
         if (! wikiResponse.has("query")) return null;
+        if (! wikiResponse.getJSONObject("query").has("pages")) return null;
 
         JSONArray base = wikiResponse.getJSONObject("query").getJSONArray("pages");
 
@@ -286,17 +284,24 @@ public class Wikipedia
     {
         // db.wiki.find({"key": {$in:["Wacker Burghausen","Schweinfurt","asdfasgs34"]}})
 
-        System.out.println("Tags: " + tags.length());
+        int tagsCount = tags.length();
+        System.out.println("Tags: " + tagsCount);
         System.out.println("Loading DB Wikipedia...");
         ArrayList<String> preExisting = mongo.find("{\"key\": {$in:" + tags.toString() + "}}");
 
-        System.out.println("--> " + preExisting.size());
+        System.out.println("fund: " + preExisting.size());
+        System.out.println("left: " + (tags.length() - preExisting.size()));
 
         ArrayList<String> done = new ArrayList<>();
 
         System.out.println("Start...");
-        for (int inx = 0; inx < tags.length(); inx++)
+
+        for (int inx = 0; inx < tagsCount; inx++)
         {
+            double percent = Math.round((100.0 * ((double) inx / (double) tagsCount)) * 100.0) / 100.0;
+            // System.out.print((Math.round((inx / tagsCount) * 100.0 * 100.0) / 100.0) + " - " + inx + "\r");
+            System.out.print(inx + " / " + percent + "%\r");
+
             String tag = tags.getString(inx);
 
             if (done.contains(tag)) continue;
@@ -314,6 +319,5 @@ public class Wikipedia
     }
 }
 
-//
 // upload.wikimedia.org/wikipedia/commons/thumb/1/1d/DIE_LINKE_Bundesparteitag_Mai_2014_Kipping%2C_Katja.jpg/330px-DIE_LINKE_Bundesparteitag_Mai_2014_Kipping%2C_Katja.jpg 1.5x,
 // upload.wikimedia.org/wikipedia/commons/thumb/1/1d/DIE_LINKE_Bundesparteitag_Mai_2014_Kipping%2C_Katja.jpg/440px-DIE_LINKE_Bundesparteitag_Mai_2014_Kipping%2C_Katja.jpg 2x

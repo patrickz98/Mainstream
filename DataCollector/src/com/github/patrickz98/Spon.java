@@ -1,9 +1,9 @@
 package com.github.patrickz98;
 
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -63,7 +63,7 @@ public class Spon
 
         StringBuilder articleString = new StringBuilder();
         articleString.append(head);
-        articleString.append("\n\n\n");
+        articleString.append("\n\n");
 
         while (matcher.find())
         {
@@ -74,6 +74,8 @@ public class Spon
         String content = Simple.deMoronize(articleString.toString());
         content = content.replaceAll("<.*?>(.*?)</.*?>", "$1");
 
+        StringEscapeUtils.unescapeHtml4(content);
+
         return content;
     }
 
@@ -82,7 +84,6 @@ public class Spon
         if (! link.endsWith(".html")) return null;
         if (title.equals(""))         return null;
         if (title.contains("="))      return null;
-
 
         title = Simple.deMoronize(title);
 
@@ -120,14 +121,14 @@ public class Spon
 
     public void scan()
     {
-        System.out.println("Downloading: http://www.spiegel.de/schlagzeilen/");
+        // System.out.println("Downloading: http://www.spiegel.de/schlagzeilen/");
 
         String spon = Simple.open_url("http://www.spiegel.de/schlagzeilen/");
         spon = Simple.latin1ToUtf8(spon);
 
         if (spon == null)
         {
-            System.err.println("SPON Error: spon == null");
+            System.err.println("Error: spiegel.de");
             return;
         }
 

@@ -129,6 +129,14 @@ public class Simple
         return Integer.parseInt(form.format(date));
     }
 
+    public static String toDayDate(String format)
+    {
+        Date date = new Date();
+        DateFormat form = new SimpleDateFormat(format);
+
+        return form.format(date);
+    }
+
     public static void saveFile(String filePath, String content)
     {
         File parent = new File(filePath).getParentFile();

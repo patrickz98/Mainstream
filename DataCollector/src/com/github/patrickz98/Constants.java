@@ -11,4 +11,7 @@ public class Constants
 
     public static final String collectionWiki = "wiki";
     public static final String collectionMetaData = "metaData";
+
+    public static final String dumpDir = "/Users/patrick/Desktop/Projects/Mainstream/DataCollector/dump/";
+    public static final int limitTop = 30;
 }

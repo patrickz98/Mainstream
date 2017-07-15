@@ -1,5 +1,6 @@
 package com.github.patrickz98;
 
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -94,10 +95,13 @@ public class Suddeutsche
         {
             String p = matcher.group(1);
             articleString.append(p);
-            articleString.append("\n");
+            articleString.append("\n\n");
         }
 
-        return Simple.deMoronize(articleString.toString());
+        String str = Simple.deMoronize(articleString.toString());
+        StringEscapeUtils.unescapeHtml4(str);
+
+        return str;
     }
 
     private JSONObject processArticle(String title, String link)
@@ -140,13 +144,13 @@ public class Suddeutsche
 
     public void scan()
     {
-        System.out.println("Downloading: http://www.sueddeutsche.de");
+        // System.out.println("Downloading: http://www.sueddeutsche.de");
 
         String htmlJson = Simple.open_url("http://www.sueddeutsche.de/news/teasers?from=0&size=9999&search=&sort=date&all[]=dep&all[]=typ&all[]=sys&time=P1D");
 
         if (htmlJson == null)
         {
-            System.err.println("Error");
+            System.err.println("Error: sueddeutsche.de");
             return;
         }
 
