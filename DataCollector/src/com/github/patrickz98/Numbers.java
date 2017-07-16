@@ -27,6 +27,8 @@ public class Numbers
         mcollection = db.getCollection(collection);
 
         main();
+
+        mongoClient.close();
     }
 
     private void main()

@@ -4,6 +4,8 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class Wikipedia
@@ -287,19 +289,21 @@ public class Wikipedia
         int tagsCount = tags.length();
         System.out.println("Tags: " + tagsCount);
         System.out.println("Loading DB Wikipedia...");
-        ArrayList<String> preExisting = mongo.find("{\"key\": {$in:" + tags.toString() + "}}");
+
+        // ArrayList<String> preExisting = mongo.find("{\"key\": {$in:" + tags.toString() + "}}");
+        HashSet<String> preExisting = new HashSet<>(mongo.find("{\"key\": {$in:" + tags.toString() + "}}"));
 
         System.out.println("fund: " + preExisting.size());
         System.out.println("left: " + (tags.length() - preExisting.size()));
 
-        ArrayList<String> done = new ArrayList<>();
+        // ArrayList<String> done = new ArrayList<>();
+        HashSet<String> done = new HashSet<>();
 
         System.out.println("Start...");
 
         for (int inx = 0; inx < tagsCount; inx++)
         {
             double percent = Math.round((100.0 * ((double) inx / (double) tagsCount)) * 100.0) / 100.0;
-            // System.out.print((Math.round((inx / tagsCount) * 100.0 * 100.0) / 100.0) + " - " + inx + "\r");
             System.out.print(inx + " / " + percent + "%\r");
 
             String tag = tags.getString(inx);
