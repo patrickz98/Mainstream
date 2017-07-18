@@ -1,14 +1,119 @@
-import React, { Component } from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { Component } from "react";
+import logo from "./logo.svg";
+import "./App.css";
 
-import {Line} from 'react-chartjs-2';
+import { Line, Bar } from "react-chartjs-2";
+
+// const collection = "tagsCount";
+// const collection = "tagsCountLocation";
+// const collection = "tagsCountMisc";
+// const collection = "tagsCountOrganization";
+const collection = "tagsCountPerson";
 
 class App extends Component
 {
-    getData()
+    constructor()
     {
-        
+        super();
+
+        this.state = {
+            labels: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+            datasets: [
+                {
+                    label: "Count",
+                    backgroundColor: "rgba(151,187,205,0.2)",
+                    borderColor: "rgba(151,187,205,1)",
+                    pointBackgroundColor: "rgba(151,187,205,1)",
+                    pointBorderColor: "rgba(255, 255, 255, 1)",
+                    pointStrokeColor: "#ffffff",
+                    pointHighlightFill: "#ffffff",
+                    pointHighlightStroke: "rgba(151,187,205,1)",
+                    data: [0, 1, 1, 2, 3, 5, 8, 13, 21, 34]
+                }
+            ]
+        };
+    }
+
+    getdate()
+    {
+        const date = new Date();
+        var day   = "" + date.getDate();
+        var month = "" + (date.getMonth() + 1);
+        var year  = date.getFullYear();
+
+        if (day.length   == 1) day   = "0" + day;
+        if (month.length == 1) month = "0" + month;
+
+        return parseInt(year + month + day);
+    }
+
+    updateData(responseJson)
+    {
+        console.log("Done");
+        console.log(JSON.stringify(responseJson));
+
+        var index = 0;
+        var labels = [];
+        var data = [];
+
+        for (var tag in responseJson[ collection ][ "data" ])
+        {
+            labels[ index ] = tag;
+            data[ index ] = responseJson[ collection ][ "data" ][ tag ][ this.getdate() ];
+
+            index++;
+        }
+
+        // {
+        //     label: "Count",
+        //     backgroundColor: "rgba(151,187,205,0.2)",
+        //     borderColor: "rgba(151,187,205,1)",
+        //     pointBackgroundColor: "rgba(151,187,205,1)",
+        //     pointBorderColor: "rgba(255, 255, 255, 1)",
+        //     pointStrokeColor: "#ffffff",
+        //     pointHighlightFill: "#ffffff",
+        //     pointHighlightStroke: "rgba(151,187,205,1)",
+        //     data: data
+        // }
+
+        this.setState({
+            labels: labels,
+            datasets: [
+                {
+                    label: "Count",
+                    backgroundColor: "rgba(0, 170, 255, 1)",
+                    borderColor: "rgba(0, 170, 255, 1)",
+                    pointBackgroundColor: "rgba(0, 170, 255, 1)",
+                    pointBorderColor: "rgba(255, 255, 255, 1)",
+                    pointStrokeColor: "#ffffff",
+                    pointHighlightFill: "#ffffff",
+                    pointHighlightStroke: "rgba(151,187,205,1)",
+                    data: data
+                }
+            ]
+        });
+    }
+
+    update()
+    {
+        // fetch("https://facebook.github.io/react-native/movies.json")
+        // fetch("http://localhost:8080/?q=SPD")
+        // fetch("https://codepen.io/jobs.json")
+        return fetch("http://localhost:8080")
+        .then((response) => response.json())
+        .then((responseJson) => {
+            this.updateData(responseJson);
+            return responseJson;
+        })
+        .catch((error) => {
+            console.error(error);
+        });
+    }
+
+    componentDidMount()
+    {
+        console.log("componentDidMount");
+        this.update();
     }
 
     render()
@@ -23,70 +128,63 @@ class App extends Component
         //     </p>
         //   </div>
 
-        // var Chart = require('chart.js');
-        //
-        // var myLineChart = new Chart(ctx, {
-        //     type: 'line',
-        //     data: data,
-        //     options: options
-        // });
+        var labels = this.state[ "labels" ];
 
-        // <LineChart data={chartData} options={chartOptions} width="600" height="250"/>
+        const graphClickEvent = function(event, array)
+        {
+            console.log("graphClickEvent");
 
-        // const data = {
-        //     labels: ["Red", "Blue", "Yellow", "Green", "Purple", "Orange1234"],
-        //     datasets: [
-        //         {
-        //             label: '# of Votes',
-        //             data: [12, 19, 3, 5, 2, 3],
-        //             backgroundColor: [
-        //                 'rgba(255, 99, 132, 0.2)',
-        //                 'rgba(54, 162, 235, 0.2)',
-        //                 'rgba(255, 206, 86, 0.2)',
-        //                 'rgba(75, 192, 192, 0.2)',
-        //                 'rgba(153, 102, 255, 0.2)',
-        //                 'rgba(255, 159, 64, 0.2)'
-        //             ],
-        //             borderColor: [
-        //                 '#ff6384',
-        //                 'rgba(54, 162, 235, 1)',
-        //                 'rgba(255, 206, 86, 1)',
-        //                 'rgba(75, 192, 192, 1)',
-        //                 'rgba(153, 102, 255, 1)',
-        //                 'rgba(255, 159, 64, 1)'
-        //             ],
-        //             borderWidth: 2
-        //         }
-        //     ]
-        // };
+            if(! array[ 0 ]) return;
 
-        var data = {
-            labels: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-            datasets: [
-                {
-                    label: "My Second dataset",
-                    backgroundColor: "rgba(151,187,205,0.2)",
-                    borderColor: "rgba(151,187,205,1)",
-                    pointBackgroundColor: "rgba(151,187,205,1)",
-                    pointBorderColor: "rgba(255, 255, 255, 1)",
-                    pointStrokeColor: "#ffffff",
-                    pointHighlightFill: "#ffffff",
-                    pointHighlightStroke: "rgba(151,187,205,1)",
-                    data: [0, 1, 1, 2, 3, 5, 8, 13, 21, 34]
-                }
-            ]
+            var clicked = labels[ array[ 0 ][ "_index" ] ];
+
+            console.log("clicked: " + clicked);
+
+            window.open("http://odroid-ubuntu.local:28017/MainStream/wiki/?filter_key=" + clicked);
+        };
+
+        const options = {
+            maintainAspectRatio: false,
+            onClick: graphClickEvent,
+            legend: {
+                display: false
+            },
+            // tooltips: {
+            //     enabled: false
+            // },
+            // scales: {
+            //     yAxes: [
+            //         {
+            //             stacked: true,
+            //             display: true,
+            //             gridLines: {
+            //                 display: false
+            //             }
+            //         }
+            //     ],
+            //     xAxes: [
+            //         {
+            //             stacked: true,
+            //             gridLines: {
+            //                 display: false
+            //             },
+            //             ticks: {
+            //                 beginAtZero: true
+            //             }
+            //         }
+            //     ]
+            // }
         };
 
         return (
             <div>
-                <h1>Hallo Welt</h1>
-                <div style={{width: 800, height:250}}>
-                    <Line
-                        data={data}
-                        options={{
-                            maintainAspectRatio: false
-                        }}/>
-                </div>
+                <center>
+                    <div style={{padding: 20, width: 1200, height:450}}>
+                        <Bar
+                            data={this.state}
+                            options={options}/>
+                    </div>
+                </center>
             </div>
         );
     }

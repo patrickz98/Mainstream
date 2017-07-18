@@ -1,6 +1,5 @@
 package com.github.patrickz98;
 
-import org.bson.Document;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -64,7 +63,7 @@ public class Main
         aliasManager.autoMatch(allTags);
         aliasManager.cleanNerBranch(allTags);
 
-        Simple.saveFile("/Users/patrick/Desktop/Projects/Mainstream/DataCollector/dump/dump-tags.json", allTags.toString(2));
+        Simple.saveFile(Constants.dumpDir + "dump-tags.json", allTags.toString(2));
 
         return allTags;
     }
@@ -80,7 +79,7 @@ public class Main
             countData.put(tag, count);
         }
 
-        Simple.saveFile("/Users/patrick/Desktop/Projects/Mainstream/DataCollector/dump/count-" + label + ".json", countData.toString(2));
+        Simple.saveFile(Constants.dumpDir + "count-" + label + ".json", countData.toString(2));
 
         StringBuilder csv = new StringBuilder();
         csv.append("Tag,Count\n");
@@ -95,7 +94,7 @@ public class Main
 
         csv.trimToSize();
 
-        Simple.saveFile("/Users/patrick/Desktop/Projects/Mainstream/DataCollector/dump/count-" + label + ".csv", csv.toString());
+        Simple.saveFile(Constants.dumpDir + "count-" + label + ".csv", csv.toString());
 
         return countData;
     }
@@ -214,7 +213,7 @@ public class Main
         mongo = new Mongo(Constants.collectionMetaData);
 
         JSONArray data = collectData();
-        Simple.saveFile("/Users/patrick/Desktop/Projects/Mainstream/DataCollector/dump/dump.json", data.toString(2));
+        Simple.saveFile(Constants.dumpDir + "dump.json", data.toString(2));
 
         JSONArray allTags = dumpAllTags(data);
         cleanData(data);
