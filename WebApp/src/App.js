@@ -1,14 +1,17 @@
 import React, { Component } from "react";
-import logo from "./logo.svg";
-import "./App.css";
 
 import { Line, Bar } from "react-chartjs-2";
 
-// const collection = "tagsCount";
+// import Utils from "./Utils";
+import TopList from "./TopList";
+
+const collection = "tagsCount";
 // const collection = "tagsCountLocation";
 // const collection = "tagsCountMisc";
 // const collection = "tagsCountOrganization";
-const collection = "tagsCountPerson";
+// const collection = "tagsCountPerson";
+
+const Utils = require("./Utils");
 
 class App extends Component
 {
@@ -16,7 +19,7 @@ class App extends Component
     {
         super();
 
-        this.state = {
+        const topBarData = {
             labels: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
             datasets: [
                 {
@@ -32,26 +35,15 @@ class App extends Component
                 }
             ]
         };
-    }
 
-    getdate()
-    {
-        const date = new Date();
-        var day   = "" + date.getDate();
-        var month = "" + (date.getMonth() + 1);
-        var year  = date.getFullYear();
-
-        if (day.length   == 1) day   = "0" + day;
-        if (month.length == 1) month = "0" + month;
-
-        return parseInt(year + month + day);
+        this.state = {
+            topBarData: topBarData,
+            metaData: null
+        };
     }
 
     updateData(responseJson)
     {
-        console.log("Done");
-        console.log(JSON.stringify(responseJson));
-
         var index = 0;
         var labels = [];
         var data = [];
@@ -59,24 +51,12 @@ class App extends Component
         for (var tag in responseJson[ collection ][ "data" ])
         {
             labels[ index ] = tag;
-            data[ index ] = responseJson[ collection ][ "data" ][ tag ][ this.getdate() ];
+            data[ index ] = responseJson[ collection ][ "data" ][ tag ][ Utils.getDate() ];
 
             index++;
         }
 
-        // {
-        //     label: "Count",
-        //     backgroundColor: "rgba(151,187,205,0.2)",
-        //     borderColor: "rgba(151,187,205,1)",
-        //     pointBackgroundColor: "rgba(151,187,205,1)",
-        //     pointBorderColor: "rgba(255, 255, 255, 1)",
-        //     pointStrokeColor: "#ffffff",
-        //     pointHighlightFill: "#ffffff",
-        //     pointHighlightStroke: "rgba(151,187,205,1)",
-        //     data: data
-        // }
-
-        this.setState({
+        const topBarData = {
             labels: labels,
             datasets: [
                 {
@@ -91,7 +71,10 @@ class App extends Component
                     data: data
                 }
             ]
-        });
+        };
+
+        this.setState({topBarData: topBarData});
+        this.setState({metaData: responseJson[ collection ]});
     }
 
     update()
@@ -112,7 +95,6 @@ class App extends Component
 
     componentDidMount()
     {
-        console.log("componentDidMount");
         this.update();
     }
 
@@ -128,12 +110,10 @@ class App extends Component
         //     </p>
         //   </div>
 
-        var labels = this.state[ "labels" ];
+        var labels = this.state.topBarData[ "labels" ];
 
         const graphClickEvent = function(event, array)
         {
-            console.log("graphClickEvent");
-
             if(! array[ 0 ]) return;
 
             var clicked = labels[ array[ 0 ][ "_index" ] ];
@@ -148,41 +128,17 @@ class App extends Component
             onClick: graphClickEvent,
             legend: {
                 display: false
-            },
-            // tooltips: {
-            //     enabled: false
-            // },
-            // scales: {
-            //     yAxes: [
-            //         {
-            //             stacked: true,
-            //             display: true,
-            //             gridLines: {
-            //                 display: false
-            //             }
-            //         }
-            //     ],
-            //     xAxes: [
-            //         {
-            //             stacked: true,
-            //             gridLines: {
-            //                 display: false
-            //             },
-            //             ticks: {
-            //                 beginAtZero: true
-            //             }
-            //         }
-            //     ]
-            // }
+            }
         };
 
         return (
             <div>
                 <center>
-                    <div style={{padding: 20, width: 1200, height:450}}>
+                    <div style={{padding: 0, width: 1200, height:450}}>
                         <Bar
-                            data={this.state}
+                            data={this.state.topBarData}
                             options={options}/>
+                        <TopList metaData={this.state.metaData} />
                     </div>
                 </center>
             </div>
