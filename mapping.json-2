@@ -1,0 +1,22 @@
+{
+	"mappings": {
+		"test": {
+			"_all":       { "enabled": true  }, 
+			"properties": { 
+				"allTags":   { "type": "text"  }, 
+				"content":   { "type": "text"  }, 
+				"date":      {
+								"type": "date",
+								"format": "yyyyMMdd"
+							},
+				"link":      { "type": "text"  },
+				"source":    { "type": "text"  },
+				"tags.location":      { "type": "text"  },
+				"tags.misc":      { "type": "text"  },
+				"tags.organization":      { "type": "text"  },
+				"tags.person":      { "type": "text"  },
+				"title":      { "type": "text"  }
+			}
+		}
+	}
+}
