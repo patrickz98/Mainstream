@@ -15,7 +15,11 @@ Mongo.getData(dataCallback);
 const setHeaders = function(response)
 {
     // Website you wish to allow to connect
-    response.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
+    // response.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
+    // response.setHeader("Access-Control-Allow-Origin", "http://patrick-macbook.local:3000");
+    // response.setHeader("Access-Control-Allow-Origin", "http://192.168.0.31:3000");
+    // response.setHeader("Access-Control-Allow-Origin", "http://192.168.0.29:3000");
+    response.setHeader("Access-Control-Allow-Origin", "*");
 
     // Request methods you wish to allow
     response.setHeader("Access-Control-Allow-Methods", "GET");
@@ -44,6 +48,14 @@ const request = function(request, response)
     {
         console.log("--> search: " + query.q);
         response.end("query.q: " + query.q);
+
+        return;
+    }
+
+    if (query.wiki)
+    {
+        console.log("--> wiki: " + query.wiki);
+        response.end("query.q: " + query.wiki);
 
         return;
     }

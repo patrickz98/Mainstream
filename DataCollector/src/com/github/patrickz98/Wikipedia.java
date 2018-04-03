@@ -299,17 +299,35 @@ public class Wikipedia
         // ArrayList<String> done = new ArrayList<>();
         HashSet<String> done = new HashSet<>();
 
-        System.out.println("Start...");
+        System.out.println("Sorting...");
+
+        ArrayList<String> leftTags = new ArrayList<>();
 
         for (int inx = 0; inx < tagsCount; inx++)
         {
-            double percent = Math.round((100.0 * ((double) inx / (double) tagsCount)) * 100.0) / 100.0;
-            System.out.print(inx + " / " + percent + "%\r");
-
             String tag = tags.getString(inx);
 
+            if (preExisting.remove(tag)) continue;
+
+            leftTags.add(tag);
+        }
+
+        System.out.println("Sorting: " + leftTags.size());
+        System.out.println("Start...");
+
+        int inx = 0;
+        // for (int inx = 0; inx < tagsCount; inx++)
+        for (String tag: leftTags)
+        {
+            inx++;
+
+            double percent = Math.round((100.0 * ((double) inx / (double) leftTags.size())) * 100.0) / 100.0;
+            System.out.print(inx + " / " + percent + "%\r");
+
+            // String tag = tags.getString(inx);
+
             if (done.contains(tag)) continue;
-            if (preExisting.contains(tag)) continue;
+            // if (preExisting.contains(tag)) continue;
 
             find(tag);
             done.add(tag);

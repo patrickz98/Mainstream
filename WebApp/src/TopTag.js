@@ -13,7 +13,7 @@ class TopTag extends Component
         var labels = [];
         var data = [];
 
-        console.log(meta);
+        // console.log(meta);
 
         var inx = 0;
         for (var key in meta)
@@ -42,7 +42,7 @@ class TopTag extends Component
             ]
         };
 
-        console.log(chartData);
+        // console.log(chartData);
 
         this.state = {
             wiki: {},
@@ -73,7 +73,7 @@ class TopTag extends Component
 
     componentDidMount()
     {
-        console.log("componentDidMount");
+        // console.log("componentDidMount");
         this.getWiki();
     }
 

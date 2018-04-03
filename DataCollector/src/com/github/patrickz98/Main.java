@@ -107,12 +107,16 @@ public class Main
         {
             JSONObject meta = metaData.getJSONObject(inx);
 
+            // Elastic.put(meta);
+
             if (meta.has("_id")) continue;
 
             System.out.println("(Mongo) insert: " + meta.getString("source") + " - " + meta.getString("title"));
 
             meta.put("_id", Simple.md5(meta.getString("link")));
             mongo.insert(meta);
+
+            Elastic.put(meta);
         }
 
         mongo.close();
@@ -202,6 +206,8 @@ public class Main
 
     public static void main(String[] args)
     {
+        CountryManager countryManager = new CountryManager();
+
         aliasManager = new AliasManager();
 
         processArgs(args);

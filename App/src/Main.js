@@ -1,57 +1,118 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- * @flow
- */
-
-import React, { Component } from 'react';
+import React from 'react';
 import {
     AppRegistry,
     StyleSheet,
     Text,
     View,
     StatusBar,
-    Menu
+    Menu,
+    WebView,
+    Navigator,
+    Alert
 } from 'react-native';
 
-import Chart from 'react-native-chart';
+import NavigationBar from 'react-native-navigation-bar';
 
-const styles = StyleSheet.create({
+const styles = {
     container: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'white',
-    },
-    chart: {
-        width: 200,
-        height: 50,
+        backgroundColor: '#f29b67',
     },
     welcome: {
         fontSize: 20,
         textAlign: 'center',
         margin: 10,
     }
-});
+};
 
-const data = [
-    [0, 1],
-    [1, 3],
-    [3, 7],
-    [4, 9],
-];
-
-export default class Main extends Component
+export default class Main extends React.Component
 {
+    constructor()
+    {
+        super();
+        console.log("super()"); // prints out whatever is inside props
+
+        // super(props);
+
+        this.state = {
+            container: {
+                flex: 1,
+                justifyContent: "center",
+                alignItems: "center",
+                backgroundColor: "#e8e8e8"
+            }
+        };
+
+        // this.setState({showText: "true"});
+        // console.log(this.state);
+    }
+
+    // <WebView
+    //     style={{backgroundColor: "#30b1c8"}}
+    //     source={{html: html}}
+    //     scalesPageToFit={true} />
+
+    onBackHandle()
+    {
+
+    }
+
+    onForwardHandle()
+    {
+        Alert.alert(
+            'Alert Title', 'My Alert Msg',
+            [
+                // {
+                //     text: 'Ask me later', onPress: () => console.log('Ask me later pressed')
+                // },
+                {
+                    text: 'Cancel', onPress: () => console.log('Cancel Pressed'), style: 'cancel'
+                },
+                {
+                    text: 'OK', onPress: () => console.log('OK Pressed')
+                },
+            ],
+            {
+                cancelable: false
+            }
+        );
+    }
+
     render()
     {
+        // <View style={styles.container}>
+        //   </View>
+        // <View style={this.state.container}>
+
+        const html = "<html><body><h1>Hallo</h1></body></html>";
+        // let bla = this.state.showText;
+        let bla = "sadf";
+
+        console.log("render()");
+        // console.log(this.state);
+
         return (
-            <View style={styles.container}>
-                <Chart
-                    style={styles.chart}
-                    data={data}
-                    type="line"
-                 />
+            <View style={this.state.container}>
+                <StatusBar
+                    barStyle="light-content"
+                    backgroundColor="#3c3c3c"
+                    hidden={false} />
+
+                <NavigationBar
+                    title={"Title"}
+                    height={44}
+                    titleColor={"#ffffff"}
+                    backgroundColor={"#585858"}
+                    leftButtonTitle={"Back"}
+                    leftButtonTitleColor={"#ffffff"}
+                    onLeftButtonPress={this.onBackHandle}
+                    rightButtonTitle={"Nexts"}
+                    rightButtonTitleColor={"#ffffff"}
+                    onRightButtonPress={this.onForwardHandle} />
+
+                <Text>{bla}</Text>
             </View>
         );
     }
@@ -78,5 +139,3 @@ export default class Main extends Component
 //     marginBottom: 5,
 //   },
 // });
-
-// AppRegistry.registerComponent('Vota', () => Vota);

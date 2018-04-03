@@ -4,8 +4,9 @@ import { Line, Bar } from "react-chartjs-2";
 
 // import Utils from "./Utils";
 import TopList from "./TopList";
+import Menu from "./Menu";
 
-const collection = "tagsCount";
+// const collection = "tagsCount";
 // const collection = "tagsCountLocation";
 // const collection = "tagsCountMisc";
 // const collection = "tagsCountOrganization";
@@ -20,7 +21,7 @@ class App extends Component
         super();
 
         const topBarData = {
-            labels: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+            labels: [],
             datasets: [
                 {
                     label: "Count",
@@ -31,15 +32,18 @@ class App extends Component
                     pointStrokeColor: "#ffffff",
                     pointHighlightFill: "#ffffff",
                     pointHighlightStroke: "rgba(151,187,205,1)",
-                    data: [0, 1, 1, 2, 3, 5, 8, 13, 21, 34]
+                    data: []
                 }
             ]
         };
 
         this.state = {
             topBarData: topBarData,
-            metaData: null
+            metaData: null,
+            tag: "tagsCount"
         };
+
+        this.handler = this.handler.bind(this)
     }
 
     updateData(responseJson)
@@ -48,10 +52,10 @@ class App extends Component
         var labels = [];
         var data = [];
 
-        for (var tag in responseJson[ collection ][ "data" ])
+        for (var tag in responseJson[ this.state.tag ][ "data" ])
         {
             labels[ index ] = tag;
-            data[ index ] = responseJson[ collection ][ "data" ][ tag ][ Utils.getDate() ];
+            data[ index ] = responseJson[ this.state.tag ][ "data" ][ tag ][ Utils.getDate() ];
 
             index++;
         }
@@ -74,7 +78,7 @@ class App extends Component
         };
 
         this.setState({topBarData: topBarData});
-        this.setState({metaData: responseJson[ collection ]});
+        this.setState({metaData: responseJson[ this.state.tag ]});
     }
 
     update()
@@ -96,6 +100,16 @@ class App extends Component
     componentDidMount()
     {
         this.update();
+    }
+
+    handler(str)
+    {
+        console.log("######## " + str);
+        this.setState({tag: str});
+        console.log(this.state);
+
+        this.state.tag = str;
+        console.log(this.state);
     }
 
     render()
@@ -131,16 +145,61 @@ class App extends Component
             }
         };
 
+        const menuHeight = 60;
+
+        const menuStyle = {
+            width: "100%",
+            height: menuHeight,
+            backgroundColor: "#24292e",
+            position: "absolute"
+        };
+
+        const bodyStyle = {
+            left: 0,
+            top: menuHeight,
+            right: 0,
+            bottom: 0,
+            paddingTop: 20,
+            overflow: "auto",
+            backgroundColor: "#ffffff",
+            position: "absolute"
+        };
+
+        const topDivStyle = {
+            left: 0,
+            top: 0,
+            right: 0,
+            bottom: 0,
+            margin: 0,
+            padding: 0,
+            backgroundColor: "#82eb80",
+            position: "absolute"
+        };
+
+        const test = {
+            padding: 0,
+            margin: 0,
+            // width: "100%",
+            left: 100,
+            right: 100,
+            height: 450,
+            position: "absolute"
+        };
+
         return (
-            <div>
-                <center>
-                    <div style={{padding: 0, width: 1200, height:450}}>
-                        <Bar
-                            data={this.state.topBarData}
-                            options={options}/>
-                        <TopList metaData={this.state.metaData} />
-                    </div>
-                </center>
+            <div style={topDivStyle}>
+                <Menu title={this.state.tag} handler={this.handler.bind(this)}/>
+
+                <div style={bodyStyle}>
+                    <center>
+                        <div style={test}>
+                            <Bar
+                                data={this.state.topBarData}
+                                options={options}/>
+                            <TopList metaData={this.state.metaData} />
+                        </div>
+                    </center>
+                </div>
             </div>
         );
     }
